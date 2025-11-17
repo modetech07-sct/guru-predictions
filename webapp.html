@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Гуру прогнозов</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+  h1 { color: #333; margin-bottom: 10px; }
+  #points { font-size: 28px; margin: 10px; }
+  .match-list { margin-top: 20px; text-align: left; display: inline-block; }
+  .match-item { margin: 10px 0; }
+  .match-item input { width: 50px; font-size: 18px; text-align: center; margin: 0 5px; }
+  button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>🎯 Гуру прогнозов</h1>
+<div id="points">Очки: 0 XP</div>
+
+<div class="match-list" id="match-list">
+  <h2>Прогнозы на неделю:</h2>
+</div>
+
+<button onclick="submitAllPredictions()">Отправить все прогнозы</button>
+
+<script>
+const Telegram = window.Telegram.WebApp;
+
+// Игровые данные
+let points = 0;
+
+// Список матчей недели
+const matches = [
+  "Локомотив vs Краснодар",
+  "Спартак vs ЦСКА",
+  "Зенит vs Сочи",
+  "Динамо vs Рубин",
+  "Крылья Советов vs Ахмат",
+  "Урал vs Ростов",
+  "Арсенал vs Тамбов",
+  "Нижний Новгород vs Торпедо"
+];
+
+const matchListEl = document.getElementById("match-list");
+
+// Создаем элементы для матчей
+matches.forEach(match => {
+  const div = document.createElement("div");
+  div.className = "match-item";
+  div.dataset.match = match;
+  div.innerHTML = `<strong>${match}</strong> 
+    <input type="number" placeholder="0" class="home-goals"> :
+    <input type="number" placeholder="0" class="away-goals">`;
+  matchListEl.appendChild(div);
+});
+
+// Функция обновления очков
+function updateUI() {
+  document.getElementById("points").innerText = `Очки: ${points} XP`;
+}
+
+// Отправка всех прогнозов
+function submitAllPredictions() {
+  const preds = [];
+  document.querySelectorAll(".match-item").forEach((item, index) => {
+    const home = item.querySelector(".home-goals").value;
+    const away = item.querySelector(".away-goals").value;
+    if(home !== "" && away !== "") {
+      preds.push({match: item.dataset.match, pred: `${home}:${away}`});
+    }
+  });
+  if(preds.length === 0) {
+    alert("Введите хотя бы один прогноз");
+    return;
+  }
+
+  // Отправка данных боту
+  Telegram.WebApp.sendData(JSON.stringify(preds));
+
+  // Симуляция начисления очков
+  points += preds.length * 100;
+  updateUI();
+}
+
+// Инициализация
+updateUI();
+</script>
+
+</body>
+</html>
