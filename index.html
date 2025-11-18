@@ -17,79 +17,66 @@
 
 <h1>🎯 Гуру прогнозов</h1>
 <div id="points">Очки: 0 XP</div>
-
-<div class="match-list" id="match-list">
-  <h2>Прогнозы на неделю:</h2>
-</div>
-
-<button id="submitBtn">Отправить все прогнозы</button>
+<div class="match-list" id="match-list"><h2>Прогнозы на неделю:</h2></div>
+<button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-let points = 0;
-const matchListEl = document.getElementById("match-list");
-const submitBtn = document.getElementById("submitBtn");
+// Игровые данные
+const Telegram = window.Telegram.WebApp;
 
-// Проверяем наличие Telegram WebApp
-const Telegram = window.Telegram || { WebApp: { sendData: (d)=>alert("WebApp.sendData: "+d) } };
+// Загружаем список матчей с GitHub (или можно вставить прямо в HTML)
+const matchesUrl = "matches.json";
 
-// Загружаем матчи
-fetch('matches.json')
+fetch(matchesUrl)
   .then(res => res.json())
   .then(matches => {
-    const now = new Date();
-    const firstMatchDate = new Date(matches[0].date);
-    const cutoffDate = new Date(firstMatchDate.getTime() - 2*60*60*1000); // минус 2 часа
+    const matchListEl = document.getElementById("match-list");
 
     matches.forEach(match => {
-      const matchDate = new Date(match.date);
       const div = document.createElement("div");
       div.className = "match-item";
       div.dataset.match = `${match.home} vs ${match.away}`;
-      div.dataset.datetime = match.date;
-      div.innerHTML = `<strong>${matchDate.toLocaleString()} — ${match.home} vs ${match.away}</strong>
+      div.dataset.date = match.date;
+      div.innerHTML = `<strong>${match.home} vs ${match.away} — ${new Date(match.date).toLocaleString()}</strong> 
         <input type="number" placeholder="0" class="home-goals"> :
         <input type="number" placeholder="0" class="away-goals">`;
       matchListEl.appendChild(div);
     });
-
-    // Блокировка отправки, если время прошло
-    if(now > cutoffDate){
-      submitBtn.disabled = true;
-      submitBtn.innerText = "Ставки закрыты";
-      alert("Прогнозы закрыты: прошло более 2 часов до первого матча");
-    }
-  })
-  .catch(err => console.error("Ошибка загрузки матчей:", err));
-
-function updateUI() {
-  document.getElementById("points").innerText = `Очки: ${points} XP`;
-}
+  });
 
 function submitAllPredictions() {
+  const now = new Date();
   const preds = [];
-  document.querySelectorAll(".match-item").forEach((item) => {
+  let canSend = true;
+
+  document.querySelectorAll(".match-item").forEach(item => {
     const home = item.querySelector(".home-goals").value;
     const away = item.querySelector(".away-goals").value;
+    const matchDate = new Date(item.dataset.date);
+    const deadline = new Date(matchDate.getTime() - 2 * 60 * 60 * 1000); // 2 часа до матча
+
+    if(now > deadline) {
+      canSend = false; // уже поздно
+    }
+
     if(home !== "" && away !== "") {
       preds.push({match: item.dataset.match, pred: `${home}:${away}`});
     }
   });
+
+  if(!canSend) {
+    alert("Прогнозы можно отправлять только до 2 часов до начала первого матча!");
+    return;
+  }
 
   if(preds.length === 0){
     alert("Введите хотя бы один прогноз");
     return;
   }
 
-  // Отправляем данные в Telegram
   Telegram.WebApp.sendData(JSON.stringify(preds));
-
-  // Начисляем очки
-  points += preds.length * 100;
-  updateUI();
+  alert("Прогнозы отправлены. Очки будут начислены после проведения матчей.");
 }
-
-updateUI();
-submitBtn.addEventListener("click", submitAllPredictions);
 </script>
 
 </body>
