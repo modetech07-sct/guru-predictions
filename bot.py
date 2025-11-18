@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 
 # Вставь сюда токен своего бота
-BOT_TOKEN = "ВАШ_ТОКЕН"
+BOT_TOKEN = "8299900071:AAFukyq_HYY4Psspwq16oPIZ4wItrJld6Cc"
 bot = TeleBot(BOT_TOKEN)
 
 # Хранение прогнозов и очков
