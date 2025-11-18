@@ -25,11 +25,8 @@
 <button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-// Проверяем наличие Telegram WebApp
-let Telegram = null;
-if (window.Telegram && window.Telegram.WebApp) {
-    Telegram = window.Telegram.WebApp;
-}
+// Проверяем Telegram WebApp, если нет — используем заглушку
+const Telegram = window.Telegram ? window.Telegram : { WebApp: { sendData: (data) => console.log("Data sent:", data) } };
 
 // Игровые данные
 let points = 0;
@@ -67,29 +64,28 @@ function updateUI() {
 // Отправка всех прогнозов
 function submitAllPredictions() {
   const preds = [];
-  document.querySelectorAll(".match-item").forEach((item) => {
+  document.querySelectorAll(".match-item").forEach(item => {
     const home = item.querySelector(".home-goals").value;
     const away = item.querySelector(".away-goals").value;
     if(home !== "" && away !== "") {
       preds.push({match: item.dataset.match, pred: `${home}:${away}`});
     }
   });
+
   if(preds.length === 0) {
     alert("Введите хотя бы один прогноз");
     return;
   }
 
-  if (Telegram) {
-    Telegram.sendData(JSON.stringify(preds));
-    alert("Прогнозы отправлены боту!");
-  } else {
-    console.log("Отправка данных боту отключена. Данные:", preds);
-    alert("Вы открыли страницу в обычном браузере. Данные показаны в консоли.");
-  }
+  // Отправка данных боту (Telegram WebApp)
+  Telegram.WebApp.sendData(JSON.stringify(preds));
 
-  // Симуляция начисления очков
+  // Симуляция начисления очков для теста
   points += preds.length * 100;
   updateUI();
+
+  // Вывод в консоль (для браузера)
+  console.log("Отправленные прогнозы:", preds);
 }
 
 // Инициализация
