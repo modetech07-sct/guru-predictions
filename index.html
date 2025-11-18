@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <title>Гуру прогнозов</title>
 <style>
-  body { font-family: Arial; text-align: center; background: #f0f2f5; padding: 20px; }
-  h1 { color: #333; margin-bottom: 10px; }
-  #points { font-size: 28px; margin: 10px; }
-  .match-list { margin-top: 20px; text-align: left; display: inline-block; }
-  .match-item { margin: 10px 0; }
-  .match-item input { width: 50px; font-size: 18px; text-align: center; margin: 0 5px; }
-  button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+h1 { color: #333; margin-bottom: 10px; }
+#points { font-size: 28px; margin: 10px; }
+.match-list { margin-top: 20px; text-align: left; display: inline-block; }
+.match-item { margin: 10px 0; }
+.match-item input { width: 50px; font-size: 18px; text-align: center; margin: 0 5px; }
+button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -25,64 +25,41 @@
 <button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-const Telegram = window.Telegram ? window.Telegram.WebApp : null;
 let points = 0;
-
-// Список матчей 16-го тура РПЛ 2025 года
-const matches = [
-  { date: "2025-11-21T15:00", home: "Акрон", away: "Сочи" },
-  { date: "2025-11-22T15:00", home: "Оренбург", away: "Балтика" },
-  { date: "2025-11-22T17:00", home: "Спартак", away: "ЦСКА" },
-  { date: "2025-11-22T19:00", home: "Рубин", away: "Ахмат" },
-  { date: "2025-11-23T15:00", home: "Крылья Советов", away: "Ростов" },
-  { date: "2025-11-23T17:00", home: "Пари НН", away: "Зенит" },
-  { date: "2025-11-23T19:00", home: "Динамо (Москва)", away: "Динамо (Махачкала)" },
-  { date: "2025-11-23T19:00", home: "Локомотив", away: "Краснодар" }
-];
-
+const Telegram = window.Telegram ? window.Telegram.WebApp : null;
 const matchListEl = document.getElementById("match-list");
 
-matches.forEach(match => {
-  const div = document.createElement("div");
-  div.className = "match-item";
-  div.dataset.match = `${match.home} vs ${match.away}`;
-  div.dataset.matchTime = match.date;
-  div.innerHTML = `<strong>${new Date(match.date).toLocaleString('ru-RU', {dateStyle:'short', timeStyle:'short'})} — ${match.home} vs ${match.away}</strong>
-    <input type="number" placeholder="0" class="home-goals"> :
-    <input type="number" placeholder="0" class="away-goals">`;
-  matchListEl.appendChild(div);
-});
+// Загружаем матчи из matches.json
+fetch("matches.json")
+  .then(res => res.json())
+  .then(matches => {
+    matches.forEach(match => {
+      const div = document.createElement("div");
+      div.className = "match-item";
+      div.dataset.match = `${match.home} vs ${match.away}`;
+      div.dataset.matchTime = match.date;
+      div.innerHTML = `<strong>${new Date(match.date).toLocaleString('ru-RU', {dateStyle:'short', timeStyle:'short'})} — ${match.home} vs ${match.away}</strong>
+        <input type="number" placeholder="0" class="home-goals"> :
+        <input type="number" placeholder="0" class="away-goals">`;
+      matchListEl.appendChild(div);
+    });
+  });
 
 function updateUI() {
   document.getElementById("points").innerText = `Очки: ${points} XP`;
 }
 
-// Проверка дедлайна: 2 часа до первого матча
-function isBeforeDeadline() {
-  const firstMatchTime = new Date(matches[0].date);
-  const deadline = new Date(firstMatchTime.getTime() - 2*60*60*1000);
-  return new Date() < deadline;
-}
-
 function submitAllPredictions() {
-  if (!Telegram) { alert("Эта кнопка работает только в Telegram WebApp."); return; }
-
-  if (!isBeforeDeadline()) {
-    alert("Прогнозы закрыты (за 2 часа до первого матча).");
-    return;
-  }
-
+  if(!Telegram) { alert("Ошибка: Telegram.WebApp не найден"); return; }
   const preds = [];
-  document.querySelectorAll(".match-item").forEach((item) => {
+  document.querySelectorAll(".match-item").forEach(item => {
     const home = item.querySelector(".home-goals").value;
     const away = item.querySelector(".away-goals").value;
     if(home !== "" && away !== "") {
       preds.push({match: item.dataset.match, pred: `${home}:${away}`});
     }
   });
-
   if(preds.length === 0) { alert("Введите хотя бы один прогноз"); return; }
-
   Telegram.sendData(JSON.stringify(preds));
   points += preds.length * 100;
   updateUI();
@@ -90,6 +67,5 @@ function submitAllPredictions() {
 
 updateUI();
 </script>
-
 </body>
 </html>
