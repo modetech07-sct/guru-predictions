@@ -25,10 +25,11 @@
 <button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-// Если WebApp есть — используем Telegram, иначе фейковый объект для браузера
-const Telegram = window.Telegram ? window.Telegram.WebApp : {
-    sendData: (data) => { console.log("Данные для бота:", data); }
-};
+// Проверяем наличие Telegram WebApp
+let Telegram = null;
+if (window.Telegram && window.Telegram.WebApp) {
+    Telegram = window.Telegram.WebApp;
+}
 
 // Игровые данные
 let points = 0;
@@ -78,8 +79,13 @@ function submitAllPredictions() {
     return;
   }
 
-  // Отправка данных боту (или в консоль для браузера)
-  Telegram.sendData(JSON.stringify(preds));
+  if (Telegram) {
+    Telegram.sendData(JSON.stringify(preds));
+    alert("Прогнозы отправлены боту!");
+  } else {
+    console.log("Отправка данных боту отключена. Данные:", preds);
+    alert("Вы открыли страницу в обычном браузере. Данные показаны в консоли.");
+  }
 
   // Симуляция начисления очков
   points += preds.length * 100;
