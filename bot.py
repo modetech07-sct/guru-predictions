@@ -2,7 +2,7 @@ from telebot import TeleBot, types
 import json
 from datetime import datetime, timedelta
 
-BOT_TOKEN = "ВАШ_ТОКЕН_БОТА"
+BOT_TOKEN = "8299900071:AAFukyq_HYY4Psspwq16oPIZ4wItrJld6Cc"
 bot = TeleBot(BOT_TOKEN)
 
 user_points = {}
