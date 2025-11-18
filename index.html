@@ -25,7 +25,10 @@
 <button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-const Telegram = window.Telegram.WebApp;
+// Если WebApp есть — используем Telegram, иначе фейковый объект для браузера
+const Telegram = window.Telegram ? window.Telegram.WebApp : {
+    sendData: (data) => { console.log("Данные для бота:", data); }
+};
 
 // Игровые данные
 let points = 0;
@@ -38,7 +41,7 @@ const matches = [
   { date: "22 ноября", home: "Рубин", away: "Ахмат" },
   { date: "23 ноября", home: "Крылья Советов", away: "Ростов" },
   { date: "23 ноября", home: "Пари НН", away: "Зенит" },
-  { date: "23 ноября", home: "Динамо (Москва)", away: "Динамо (Махачкала)" }, // Москва дома
+  { date: "23 ноября", home: "Динамо (Москва)", away: "Динамо (Махачкала)" },
   { date: "23 ноября", home: "Локомотив", away: "Краснодар" }
 ];
 
@@ -75,8 +78,8 @@ function submitAllPredictions() {
     return;
   }
 
-  // Отправка данных боту
-  Telegram.WebApp.sendData(JSON.stringify(preds));
+  // Отправка данных боту (или в консоль для браузера)
+  Telegram.sendData(JSON.stringify(preds));
 
   // Симуляция начисления очков
   points += preds.length * 100;
