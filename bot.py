@@ -12,11 +12,15 @@ user_points = {}
 # Команда /start
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    web_app_info = WebAppInfo(url="https://modetech07-sct.github.io/guru-predictions/webapp.html")
+    web_app_info = WebAppInfo(url="https://modetech07-sct.github.io/guru-predictions/index.html")
     button = InlineKeyboardButton(text="Открыть Гуру Прогнозов", web_app=web_app_info)
     markup = InlineKeyboardMarkup()
     markup.add(button)
-    bot.send_message(message.chat.id, "Привет! Нажми кнопку, чтобы открыть Гуру Прогнозов.", reply_markup=markup)
+    bot.send_message(
+        chat_id=message.chat.id,
+        text="Привет! Нажми кнопку, чтобы открыть Гуру Прогнозов.",
+        reply_markup=markup
+    )
 
 # Обработка данных из WebApp
 @bot.message_handler(func=lambda message: True, content_types=['web_app_data'])
@@ -27,21 +31,21 @@ def handle_web_app_data(message):
 
         # Начисляем очки (по 100 за каждый прогноз)
         points = len(data) * 100
-        if chat_id in user_points:
-            user_points[chat_id] += points
-        else:
-            user_points[chat_id] = points
+        user_points[chat_id] = user_points.get(chat_id, 0) + points
 
-        # Отправляем сообщение с начисленными очками
-        bot.send_message(chat_id, f"Прогнозы получены! Ты заработал {points} XP. Всего очков: {user_points[chat_id]} XP.")
+        # Отправляем сообщение пользователю
+        bot.send_message(
+            chat_id,
+            f"Прогнозы получены! Ты заработал {points} XP. Всего очков: {user_points[chat_id]} XP."
+        )
 
-        # Показываем полученные прогнозы в консоли
+        # Показываем прогнозы в консоли для проверки
         print(f"Пользователь {chat_id} отправил прогнозы:")
         for pred in data:
             print(f" - {pred['match']} : {pred['pred']}")
 
     except Exception as e:
-        bot.send_message(message.chat.id, f"Ошибка при обработке прогнозов: {e}")
+        bot.send_message(chat_id, f"Ошибка при обработке прогнозов: {e}")
         print(f"Ошибка: {e}")
 
 # Запуск бота
