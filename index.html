@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <title>Гуру прогнозов</title>
 <style>
-body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
-h1 { color: #333; margin-bottom: 10px; }
-#points { font-size: 28px; margin: 10px; }
-.match-list { margin-top: 20px; text-align: left; display: inline-block; }
-.match-item { margin: 10px 0; }
-.match-item input { width: 50px; font-size: 18px; text-align: center; margin: 0 5px; }
-button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+  body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+  h1 { color: #333; margin-bottom: 10px; }
+  #points { font-size: 28px; margin: 10px; }
+  .match-list { margin-top: 20px; text-align: left; display: inline-block; }
+  .match-item { margin: 10px 0; }
+  .match-item input { width: 50px; font-size: 18px; text-align: center; margin: 0 5px; }
+  button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -25,14 +25,15 @@ button { padding: 5px 10px; font-size: 14px; background: #2196F3; color: #fff; b
 <button onclick="submitAllPredictions()">Отправить все прогнозы</button>
 
 <script>
-// Проверка Telegram WebApp
-const Telegram = window.Telegram?.WebApp;
-
-if (!Telegram) {
-    alert("Откройте приложение через Telegram, чтобы отправлять прогнозы.");
+// Проверка, что открыто внутри Telegram
+const Telegram = window.Telegram;
+if (!Telegram || !Telegram.WebApp) {
+    alert("Открывайте внутри Telegram для отправки прогнозов!");
 }
 
-// Список матчей
+let points = 0;
+
+// Матчи 16-го тура РПЛ 2025
 const matches = [
   { date: "21 ноября", home: "Акрон", away: "Сочи" },
   { date: "22 ноября", home: "Оренбург", away: "Балтика" },
@@ -45,6 +46,8 @@ const matches = [
 ];
 
 const matchListEl = document.getElementById("match-list");
+
+// Создание элементов матчей
 matches.forEach(match => {
     const div = document.createElement("div");
     div.className = "match-item";
@@ -55,9 +58,17 @@ matches.forEach(match => {
     matchListEl.appendChild(div);
 });
 
-// Функция отправки прогнозов
+// Обновление очков
+function updateUI() {
+    document.getElementById("points").innerText = `Очки: ${points} XP`;
+}
+
+// Отправка прогнозов
 function submitAllPredictions() {
-    if (!Telegram) return;
+    if (!Telegram || !Telegram.WebApp) {
+        alert("Открывайте внутри Telegram!");
+        return;
+    }
 
     const preds = [];
     document.querySelectorAll(".match-item").forEach((item) => {
@@ -68,15 +79,16 @@ function submitAllPredictions() {
         }
     });
 
-    if(preds.length === 0) {
+    if (preds.length === 0) {
         alert("Введите хотя бы один прогноз");
         return;
     }
 
-    // Отправка данных в Telegram WebApp
-    Telegram.sendData(JSON.stringify(preds));
-    alert("Прогнозы отправлены! Очки начисляться после матчей.");
+    Telegram.WebApp.sendData(JSON.stringify(preds));
+    alert("Прогнозы отправлены! Очки будут начислены после завершения матчей.");
 }
+
+updateUI();
 </script>
 
 </body>
